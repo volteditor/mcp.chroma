@@ -14,6 +14,7 @@ use mcp_spec::{
     resource::Resource,
     tool::Tool,
 };
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::future::Future;
 use std::path::Path;
@@ -29,72 +30,58 @@ impl ChromaRouter {
         Self {}
     }
     
+    async fn call_tool_method<T, R, F, Fut>(&self, args: Value, f: F) -> Result<Value, anyhow::Error> 
+    where
+        T: for<'de> Deserialize<'de>,
+        R: Serialize,
+        F: FnOnce(T) -> Fut,
+        Fut: Future<Output = Result<R>>,
+    {
+        let args = serde_json::from_value(args)?;
+        let result = f(args).await?;
+        serde_json::to_value(result).map_err(Into::into)
+    }
+    
     async fn dispatch_method(&self, name: &str, args: Value) -> Result<Value, anyhow::Error> {
         match name {
             "chroma_list_collections" => {
-                let args: tools::ListCollectionsRequest = serde_json::from_value(args)?;
-                let result = tools::chroma_list_collections(args).await?;
-                serde_json::to_value(result).map_err(Into::into)
+                self.call_tool_method(args, tools::chroma_list_collections).await
             }
             "chroma_create_collection" => {
-                let args: tools::CreateCollectionRequest = serde_json::from_value(args)?;
-                let result = tools::chroma_create_collection(args).await?;
-                serde_json::to_value(result).map_err(Into::into)
+                self.call_tool_method(args, tools::chroma_create_collection).await
             }
             "chroma_peek_collection" => {
-                let args: tools::PeekCollectionRequest = serde_json::from_value(args)?;
-                let result = tools::chroma_peek_collection(args).await?;
-                Ok(result)
+                self.call_tool_method(args, tools::chroma_peek_collection).await
             }
             "chroma_get_collection_info" => {
-                let args: tools::GetCollectionInfoRequest = serde_json::from_value(args)?;
-                let result = tools::chroma_get_collection_info(args).await?;
-                Ok(result)
+                self.call_tool_method(args, tools::chroma_get_collection_info).await
             }
             "chroma_get_collection_count" => {
-                let args: tools::GetCollectionCountRequest = serde_json::from_value(args)?;
-                let result = tools::chroma_get_collection_count(args).await?;
-                serde_json::to_value(result).map_err(Into::into)
+                self.call_tool_method(args, tools::chroma_get_collection_count).await
             }
             "chroma_modify_collection" => {
-                let args: tools::ModifyCollectionRequest = serde_json::from_value(args)?;
-                let result = tools::chroma_modify_collection(args).await?;
-                serde_json::to_value(result).map_err(Into::into)
+                self.call_tool_method(args, tools::chroma_modify_collection).await
             }
             "chroma_delete_collection" => {
-                let args: tools::DeleteCollectionRequest = serde_json::from_value(args)?;
-                let result = tools::chroma_delete_collection(args).await?;
-                serde_json::to_value(result).map_err(Into::into)
+                self.call_tool_method(args, tools::chroma_delete_collection).await
             }
             "chroma_add_documents" => {
-                let args: tools::AddDocumentsRequest = serde_json::from_value(args)?;
-                let result = tools::chroma_add_documents(args).await?;
-                serde_json::to_value(result).map_err(Into::into)
+                self.call_tool_method(args, tools::chroma_add_documents).await
             }
             "chroma_query_documents" => {
-                let args: tools::QueryDocumentsRequest = serde_json::from_value(args)?;
-                let result = tools::chroma_query_documents(args).await?;
-                Ok(result)
+                self.call_tool_method(args, tools::chroma_query_documents).await
             }
             "chroma_get_documents" => {
-                let args: tools::GetDocumentsRequest = serde_json::from_value(args)?;
-                let result = tools::chroma_get_documents(args).await?;
-                Ok(result)
+                self.call_tool_method(args, tools::chroma_get_documents).await
             }
             "chroma_update_documents" => {
-                let args: tools::UpdateDocumentsRequest = serde_json::from_value(args)?;
-                let result = tools::chroma_update_documents(args).await?;
-                serde_json::to_value(result).map_err(Into::into)
+                self.call_tool_method(args, tools::chroma_update_documents).await
             }
             "chroma_delete_documents" => {
-                let args: tools::DeleteDocumentsRequest = serde_json::from_value(args)?;
-                let result = tools::chroma_delete_documents(args).await?;
-                serde_json::to_value(result).map_err(Into::into)
+                self.call_tool_method(args, tools::chroma_delete_documents).await
             }
             "process_thought" => {
-                let args: tools::ThoughtData = serde_json::from_value(args)?;
-                let result = tools::process_thought(args).await?;
-                serde_json::to_value(result).map_err(Into::into)
+                self.call_tool_method(args, tools::process_thought).await
             }
             _ => Err(anyhow::anyhow!("Method not found: {}", name)),
         }
@@ -181,21 +168,17 @@ async fn main() -> Result<()> {
         .with_writer(std::io::stderr)
         .init();
 
-    let config = Config::parse();
+    let mut config = Config::parse();
 
     if Path::new(&config.dotenv_path).exists() {
         tracing::debug!("Loading environment from {}", config.dotenv_path.display());
         dotenv::from_path(&config.dotenv_path)?;
-        let config = Config::parse();
-        config.validate()?;
-        client::initialize_client()?;
-        run_server(ByteTransport::new(stdin(), stdout()), config).await?;
+        config = Config::parse();
     } else {
         tracing::warn!("Environment file {} not found, using defaults", config.dotenv_path.display());
-        config.validate()?;
-        client::initialize_client()?;
-        run_server(ByteTransport::new(stdin(), stdout()), config).await?;
     }
     
-    Ok(())
+    config.validate()?;
+    client::initialize_client()?;
+    run_server(ByteTransport::new(stdin(), stdout()), config).await
 }

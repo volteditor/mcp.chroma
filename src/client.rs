@@ -1,8 +1,8 @@
-use crate::config::{ClientType, Config};
 use anyhow::Result;
 use serde_json::json;
 use std::sync::{Arc, Mutex, MutexGuard};
 
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct ChromaClient {
     host: String,
@@ -45,6 +45,7 @@ impl ChromaClient {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct Collection {
     pub name: String,
@@ -127,10 +128,8 @@ impl Collection {
     }
 }
 
-// Global client singleton
 static CLIENT: Mutex<Option<ChromaClient>> = Mutex::new(None);
 
-// Initialize client from environment variables
 pub fn initialize_client() -> Result<()> {
     let host = std::env::var("CHROMA_HOST").unwrap_or_else(|_| "localhost".to_string());
     let port = std::env::var("CHROMA_PORT")
@@ -153,7 +152,6 @@ pub fn initialize_client() -> Result<()> {
     Ok(())
 }
 
-// Get the client singleton
 pub fn get_client() -> Arc<ChromaClient> {
     let client_guard: MutexGuard<Option<ChromaClient>> = CLIENT.lock().unwrap();
     

@@ -335,174 +335,209 @@ pub async fn process_thought(input_data: ThoughtData) -> Result<ThoughtResponse>
 }
 
 pub fn get_tool_definitions() -> Vec<Tool> {
-    vec![
-        Tool {
-            name: "chroma_list_collections".to_string(),
-            description: "Lists all collections in the ChromaDB instance".to_string(),
-            input_schema: serde_json::to_value(&serde_json::json!({
-                "type": "object", 
-                "properties": {
-                    "limit": {"type": "integer", "description": "Maximum number of collections to return"},
-                    "offset": {"type": "integer", "description": "Offset for pagination"}
-                }
-            })).unwrap(),
-        },
-        Tool {
-            name: "chroma_create_collection".to_string(),
-            description: "Creates a new collection in ChromaDB".to_string(),
-            input_schema: serde_json::to_value(&serde_json::json!({
-                "type": "object", 
-                "required": ["collection_name"],
-                "properties": {
-                    "collection_name": {"type": "string", "description": "Name of the collection to create"},
-                    "metadata": {"type": "object", "description": "Optional metadata for the collection"},
-                    "embedding_function_name": {"type": "string", "description": "Name of the embedding function to use"}
-                }
-            })).unwrap(),
-        },
-        Tool {
-            name: "chroma_peek_collection".to_string(),
-            description: "Shows a sample of documents in a collection".to_string(),
-            input_schema: serde_json::to_value(&serde_json::json!({
-                "type": "object", 
-                "required": ["collection_name", "limit"],
-                "properties": {
-                    "collection_name": {"type": "string", "description": "Name of the collection to peek"},
-                    "limit": {"type": "integer", "description": "Number of documents to return"}
-                }
-            })).unwrap(),
-        },
-        Tool {
-            name: "chroma_get_collection_info".to_string(),
-            description: "Gets metadata about a collection".to_string(),
-            input_schema: serde_json::to_value(&serde_json::json!({
-                "type": "object", 
-                "required": ["collection_name"],
-                "properties": {
-                    "collection_name": {"type": "string", "description": "Name of the collection"}
-                }
-            })).unwrap(),
-        },
-        Tool {
-            name: "chroma_get_collection_count".to_string(),
-            description: "Counts the number of documents in a collection".to_string(),
-            input_schema: serde_json::to_value(&serde_json::json!({
-                "type": "object", 
-                "required": ["collection_name"],
-                "properties": {
-                    "collection_name": {"type": "string", "description": "Name of the collection"}
-                }
-            })).unwrap(),
-        },
-        Tool {
-            name: "chroma_modify_collection".to_string(),
-            description: "Modifies collection properties".to_string(),
-            input_schema: serde_json::to_value(&serde_json::json!({
-                "type": "object", 
-                "required": ["collection_name"],
-                "properties": {
-                    "collection_name": {"type": "string", "description": "Name of the collection to modify"},
-                    "new_name": {"type": "string", "description": "New name for the collection"},
-                    "new_metadata": {"type": "object", "description": "New metadata for the collection"}
-                }
-            })).unwrap(),
-        },
-        Tool {
-            name: "chroma_delete_collection".to_string(),
-            description: "Deletes a collection".to_string(),
-            input_schema: serde_json::to_value(&serde_json::json!({
-                "type": "object", 
-                "required": ["collection_name"],
-                "properties": {
-                    "collection_name": {"type": "string", "description": "Name of the collection to delete"}
-                }
-            })).unwrap(),
-        },
-        Tool {
-            name: "chroma_add_documents".to_string(),
-            description: "Adds documents to a collection".to_string(),
-            input_schema: serde_json::to_value(&serde_json::json!({
-                "type": "object", 
-                "required": ["collection_name", "documents"],
-                "properties": {
-                    "collection_name": {"type": "string", "description": "Name of the collection"},
-                    "documents": {"type": "array", "items": {"type": "string"}, "description": "List of documents to add"},
-                    "metadatas": {"type": "array", "items": {"type": "object"}, "description": "List of metadata objects for documents"},
-                    "ids": {"type": "array", "items": {"type": "string"}, "description": "List of IDs for documents"}
-                }
-            })).unwrap(),
-        },
-        Tool {
-            name: "chroma_query_documents".to_string(),
-            description: "Searches for similar documents in a collection".to_string(),
-            input_schema: serde_json::to_value(&serde_json::json!({
-                "type": "object", 
-                "required": ["collection_name", "query_texts"],
-                "properties": {
-                    "collection_name": {"type": "string", "description": "Name of the collection"},
-                    "query_texts": {"type": "array", "items": {"type": "string"}, "description": "List of query texts"},
-                    "n_results": {"type": "integer", "description": "Number of results to return per query"},
-                    "where_filter": {"type": "object", "description": "Filter by metadata"},
-                    "where_document": {"type": "object", "description": "Filter by document content"}
-                }
-            })).unwrap(),
-        },
-        Tool {
-            name: "chroma_get_documents".to_string(),
-            description: "Retrieves documents from a collection".to_string(),
-            input_schema: serde_json::to_value(&serde_json::json!({
-                "type": "object", 
-                "required": ["collection_name"],
-                "properties": {
-                    "collection_name": {"type": "string", "description": "Name of the collection"},
-                    "ids": {"type": "array", "items": {"type": "string"}, "description": "List of document IDs to retrieve"},
-                    "where_filter": {"type": "object", "description": "Filter by metadata"},
-                    "where_document": {"type": "object", "description": "Filter by document content"},
-                    "limit": {"type": "integer", "description": "Maximum number of documents to return"},
-                    "offset": {"type": "integer", "description": "Offset for pagination"}
-                }
-            })).unwrap(),
-        },
-        Tool {
-            name: "chroma_update_documents".to_string(),
-            description: "Updates documents in a collection".to_string(),
-            input_schema: serde_json::to_value(&serde_json::json!({
-                "type": "object", 
-                "required": ["collection_name", "ids"],
-                "properties": {
-                    "collection_name": {"type": "string", "description": "Name of the collection"},
-                    "ids": {"type": "array", "items": {"type": "string"}, "description": "List of document IDs to update"},
-                    "documents": {"type": "array", "items": {"type": "string"}, "description": "List of document contents"},
-                    "metadatas": {"type": "array", "items": {"type": "object"}, "description": "List of metadata objects"}
-                }
-            })).unwrap(),
-        },
-        Tool {
-            name: "chroma_delete_documents".to_string(),
-            description: "Deletes documents from a collection".to_string(),
-            input_schema: serde_json::to_value(&serde_json::json!({
-                "type": "object", 
-                "required": ["collection_name", "ids"],
-                "properties": {
-                    "collection_name": {"type": "string", "description": "Name of the collection"},
-                    "ids": {"type": "array", "items": {"type": "string"}, "description": "List of document IDs to delete"}
-                }
-            })).unwrap(),
-        },
-        Tool {
-            name: "process_thought".to_string(),
-            description: "Processes a thought in an ongoing session".to_string(),
-            input_schema: serde_json::to_value(&serde_json::json!({
-                "type": "object", 
-                "required": ["session_id", "thought", "thought_number", "total_thoughts", "next_thought_needed"],
-                "properties": {
-                    "session_id": {"type": "string", "description": "Session identifier"},
-                    "thought": {"type": "string", "description": "Content of the current thought"},
-                    "thought_number": {"type": "integer", "description": "Number of this thought in the sequence"},
-                    "total_thoughts": {"type": "integer", "description": "Total expected thoughts"},
-                    "next_thought_needed": {"type": "boolean", "description": "Whether another thought is needed"}
-                }
-            })).unwrap(),
-        },
-    ]
+    let mut tools = Vec::new();
+    
+    let add_tool = |tools: &mut Vec<Tool>, name: &str, description: &str, schema: Value| {
+        tools.push(Tool {
+            name: name.to_string(),
+            description: description.to_string(),
+            input_schema: schema,
+        });
+    };
+    
+    add_tool(
+        &mut tools,
+        "chroma_list_collections",
+        "Lists all collections in the ChromaDB instance",
+        serde_json::to_value(serde_json::json!({
+            "type": "object", 
+            "properties": {
+                "limit": {"type": "integer", "description": "Maximum number of collections to return"},
+                "offset": {"type": "integer", "description": "Offset for pagination"}
+            }
+        })).unwrap()
+    );
+    
+    add_tool(
+        &mut tools,
+        "chroma_create_collection",
+        "Creates a new collection in ChromaDB",
+        serde_json::to_value(serde_json::json!({
+            "type": "object", 
+            "required": ["collection_name"],
+            "properties": {
+                "collection_name": {"type": "string", "description": "Name of the collection to create"},
+                "metadata": {"type": "object", "description": "Optional metadata for the collection"},
+                "embedding_function_name": {"type": "string", "description": "Name of the embedding function to use"}
+            }
+        })).unwrap()
+    );
+    
+    add_tool(
+        &mut tools,
+        "chroma_peek_collection",
+        "Shows a sample of documents in a collection",
+        serde_json::to_value(serde_json::json!({
+            "type": "object", 
+            "required": ["collection_name", "limit"],
+            "properties": {
+                "collection_name": {"type": "string", "description": "Name of the collection to peek"},
+                "limit": {"type": "integer", "description": "Number of documents to return"}
+            }
+        })).unwrap()
+    );
+    
+    add_tool(
+        &mut tools,
+        "chroma_get_collection_info",
+        "Gets metadata about a collection",
+        serde_json::to_value(serde_json::json!({
+            "type": "object", 
+            "required": ["collection_name"],
+            "properties": {
+                "collection_name": {"type": "string", "description": "Name of the collection"}
+            }
+        })).unwrap()
+    );
+    
+    add_tool(
+        &mut tools,
+        "chroma_get_collection_count",
+        "Counts the number of documents in a collection",
+        serde_json::to_value(serde_json::json!({
+            "type": "object", 
+            "required": ["collection_name"],
+            "properties": {
+                "collection_name": {"type": "string", "description": "Name of the collection"}
+            }
+        })).unwrap()
+    );
+    
+    add_tool(
+        &mut tools,
+        "chroma_modify_collection",
+        "Modifies collection properties",
+        serde_json::to_value(serde_json::json!({
+            "type": "object", 
+            "required": ["collection_name"],
+            "properties": {
+                "collection_name": {"type": "string", "description": "Name of the collection to modify"},
+                "new_name": {"type": "string", "description": "New name for the collection"},
+                "new_metadata": {"type": "object", "description": "New metadata for the collection"}
+            }
+        })).unwrap()
+    );
+    
+    add_tool(
+        &mut tools,
+        "chroma_delete_collection",
+        "Deletes a collection",
+        serde_json::to_value(serde_json::json!({
+            "type": "object", 
+            "required": ["collection_name"],
+            "properties": {
+                "collection_name": {"type": "string", "description": "Name of the collection to delete"}
+            }
+        })).unwrap()
+    );
+    
+    add_tool(
+        &mut tools,
+        "chroma_add_documents",
+        "Adds documents to a collection",
+        serde_json::to_value(serde_json::json!({
+            "type": "object", 
+            "required": ["collection_name", "documents"],
+            "properties": {
+                "collection_name": {"type": "string", "description": "Name of the collection"},
+                "documents": {"type": "array", "items": {"type": "string"}, "description": "List of documents to add"},
+                "metadatas": {"type": "array", "items": {"type": "object"}, "description": "List of metadata objects for documents"},
+                "ids": {"type": "array", "items": {"type": "string"}, "description": "List of IDs for documents"}
+            }
+        })).unwrap()
+    );
+    
+    add_tool(
+        &mut tools,
+        "chroma_query_documents",
+        "Searches for similar documents in a collection",
+        serde_json::to_value(serde_json::json!({
+            "type": "object", 
+            "required": ["collection_name", "query_texts"],
+            "properties": {
+                "collection_name": {"type": "string", "description": "Name of the collection"},
+                "query_texts": {"type": "array", "items": {"type": "string"}, "description": "List of query texts"},
+                "n_results": {"type": "integer", "description": "Number of results to return per query"},
+                "where_filter": {"type": "object", "description": "Filter by metadata"},
+                "where_document": {"type": "object", "description": "Filter by document content"}
+            }
+        })).unwrap()
+    );
+    
+    add_tool(
+        &mut tools,
+        "chroma_get_documents",
+        "Retrieves documents from a collection",
+        serde_json::to_value(serde_json::json!({
+            "type": "object", 
+            "required": ["collection_name"],
+            "properties": {
+                "collection_name": {"type": "string", "description": "Name of the collection"},
+                "ids": {"type": "array", "items": {"type": "string"}, "description": "List of document IDs to retrieve"},
+                "where_filter": {"type": "object", "description": "Filter by metadata"},
+                "where_document": {"type": "object", "description": "Filter by document content"},
+                "limit": {"type": "integer", "description": "Maximum number of documents to return"},
+                "offset": {"type": "integer", "description": "Offset for pagination"}
+            }
+        })).unwrap()
+    );
+    
+    add_tool(
+        &mut tools,
+        "chroma_update_documents",
+        "Updates documents in a collection",
+        serde_json::to_value(serde_json::json!({
+            "type": "object", 
+            "required": ["collection_name", "ids"],
+            "properties": {
+                "collection_name": {"type": "string", "description": "Name of the collection"},
+                "ids": {"type": "array", "items": {"type": "string"}, "description": "List of document IDs to update"},
+                "documents": {"type": "array", "items": {"type": "string"}, "description": "List of document contents"},
+                "metadatas": {"type": "array", "items": {"type": "object"}, "description": "List of metadata objects"}
+            }
+        })).unwrap()
+    );
+    
+    add_tool(
+        &mut tools,
+        "chroma_delete_documents",
+        "Deletes documents from a collection",
+        serde_json::to_value(serde_json::json!({
+            "type": "object", 
+            "required": ["collection_name", "ids"],
+            "properties": {
+                "collection_name": {"type": "string", "description": "Name of the collection"},
+                "ids": {"type": "array", "items": {"type": "string"}, "description": "List of document IDs to delete"}
+            }
+        })).unwrap()
+    );
+    
+    add_tool(
+        &mut tools,
+        "process_thought",
+        "Processes a thought in an ongoing session",
+        serde_json::to_value(serde_json::json!({
+            "type": "object", 
+            "required": ["session_id", "thought", "thought_number", "total_thoughts", "next_thought_needed"],
+            "properties": {
+                "session_id": {"type": "string", "description": "Session identifier"},
+                "thought": {"type": "string", "description": "Content of the current thought"},
+                "thought_number": {"type": "integer", "description": "Number of this thought in the sequence"},
+                "total_thoughts": {"type": "integer", "description": "Total expected thoughts"},
+                "next_thought_needed": {"type": "boolean", "description": "Whether another thought is needed"}
+            }
+        })).unwrap()
+    );
+    
+    tools
 }
