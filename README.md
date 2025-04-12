@@ -1,19 +1,23 @@
-# MCP-Chroma
+# 🧠 mcp.chroma
 
 A ChromaDB MCP server for vector embeddings, collections, and document management.
 
-## Overview
+[![Rust](https://img.shields.io/badge/Rust-000000?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
+[![MCP](https://img.shields.io/badge/MCP-Protocol-blue?style=for-the-badge)](https://modelcontextprotocol.io/)
+[![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector_Database-purple?style=for-the-badge)](https://www.trychroma.com/)
 
-MCP-Chroma provides a server interface for working with [ChromaDB](https://www.trychroma.com/), a vector database for embeddings. It enables operations on collections and documents through a set of tools accessible via the MCP (Model-Controller-Protocol) interface.
+## 📋 Overview
 
-## Features
+This MCP server provides a interface for working with [ChromaDB](https://www.trychroma.com/), a vector database for embeddings. It enables operations on collections and documents through a set of tools accessible via the MCP (Model-Controller-Protocol) interface.
 
-- Collection management (create, list, modify, delete)
-- Document operations (add, query, get, update, delete)
-- Thought processing for session management
-- Multiple client types (HTTP, Cloud, Persistent, Ephemeral)
+## ✨ Features
 
-## Installation
+- 📊 Collection management (create, list, modify, delete)
+- 📄 Document operations (add, query, get, update, delete)
+- 🧠 Thought processing for session management
+- 🔌 Multiple client types (HTTP, Cloud, Persistent, Ephemeral)
+
+## 🚀 Installation
 
 Clone the repository and build with Cargo:
 
@@ -23,7 +27,7 @@ cd mcp-chroma
 cargo build --release
 ```
 
-## Usage
+## 🛠️ Usage
 
 ### Setting Up Environment
 
@@ -55,7 +59,7 @@ CHROMA_PORT=8000
 3. **HTTP**: Remote client via HTTP
 4. **Cloud**: Managed cloud client
 
-### Configuration Options
+## ⚙️ Configuration Options
 
 | Option | Environment Variable | Description | Default |
 |--------|---------------------|-------------|---------|
@@ -69,7 +73,7 @@ CHROMA_PORT=8000
 | `--api-key` | `CHROMA_API_KEY` | API key for cloud client | None |
 | `--dotenv-path` | `CHROMA_DOTENV_PATH` | Path to .env file | .chroma_env |
 
-## Tools
+## 🧰 Tools
 
 ### Collection Tools
 
@@ -93,7 +97,9 @@ CHROMA_PORT=8000
 
 - `process_thought`: Process thoughts in an ongoing session
 
-## Example: Creating a Collection
+## 📝 Examples
+
+### Creating a Collection
 
 ```json
 {
@@ -104,7 +110,7 @@ CHROMA_PORT=8000
 }
 ```
 
-## Example: Querying Documents
+### Querying Documents
 
 ```json
 {
@@ -114,95 +120,66 @@ CHROMA_PORT=8000
 }
 ```
 
-## License
+## 🔧 Integration with Claude
+
+You can use MCP-Chroma with Claude by setting up a configuration like:
+
+```json
+{
+  "mcpServers": {
+    "chroma": {
+      "command": "mcp-chroma",
+      "args": [
+        "--client-type",
+        "http",
+        "--host",
+        "localhost",
+        "--port",
+        "8000"
+      ],
+      "env": {
+        "CHROMA_API_KEY": "<YOUR_API_KEY>"
+      }
+    }
+  }
+}
+```
+
+## 🖥️ Integration with Cursor
+
+To use MCP-Chroma with Cursor, add the following to your `.vscode/mcp.json` file:
+
+```json
+{
+  "mcp": {
+    "inputs": [
+      {
+        "type": "promptString",
+        "id": "chroma_api_key",
+        "description": "ChromaDB API Key",
+        "password": true
+      }
+    ],
+    "servers": {
+      "chroma": {
+        "command": "mcp-chroma",
+        "args": [
+          "--client-type",
+          "http",
+          "--host",
+          "localhost",
+          "--port",
+          "8000"
+        ],
+        "env": {
+          "CHROMA_API_KEY": "${input:chroma_api_key}"
+        }
+      }
+    }
+  }
+}
+```
+
+## 📄 License
 
 [MIT License](LICENSE)
-
-# ChromaDB Tools Testing
-
-This project provides a Docker Compose setup for running and testing ChromaDB integration tools using Cargo's test framework.
-
-## Overview
-
-The setup includes:
-- A ChromaDB server with basic authentication
-- A test container that runs Cargo integration tests against all ChromaDB tools
-
-## Files
-
-- `docker-compose.yml` - Defines the services: ChromaDB and test container
-- `Dockerfile.test` - Builds the test container with Cargo test support
-- `tests/integration_tests.rs` - Integration tests for all ChromaDB tools
-
-## Getting Started
-
-### Prerequisites
-
-- Docker
-- Docker Compose
-
-### Running the Tests
-
-1. Start the services:
-
-```bash
-docker-compose up
-```
-
-This will:
-- Start the ChromaDB server
-- Wait for it to be healthy
-- Run the Cargo integration tests against all ChromaDB tools
-
-To run only the ChromaDB server without tests:
-
-```bash
-docker-compose up chroma
-```
-
-### Test Output
-
-Test results are stored in the `test-results` directory, which is mounted as a volume from the test container.
-
-## Integration Tests
-
-The integration tests in `tests/integration_tests.rs` cover all ChromaDB tools:
-
-1. `test_list_collections` - Tests listing collections
-2. `test_create_and_delete_collection` - Tests creating and deleting collections
-3. `test_collection_operations` - Tests modifying collections and getting collection info
-4. `test_document_operations` - Tests document operations:
-   - Adding documents
-   - Querying documents
-   - Getting documents
-   - Filtering documents
-   - Updating documents
-   - Deleting documents
-
-## Authentication
-
-The ChromaDB server is configured with basic authentication:
-- Username: `admin`
-- Password: `admin`
-
-These credentials are used by the test container to authenticate with the ChromaDB server.
-
-## Running Tests Locally
-
-You can also run the tests locally if you have a ChromaDB server running:
-
-```bash
-# Set environment variables for the ChromaDB server
-export CHROMA_CLIENT_TYPE=http
-export CHROMA_HOST=localhost
-export CHROMA_PORT=8000
-export CHROMA_USERNAME=admin
-export CHROMA_PASSWORD=admin
-
-# Run the tests
-cargo test --test integration_tests -- --nocapture
-```
-
-## Data Persistence
-
-ChromaDB data is stored in a Docker volume named `chroma-data`. This volume persists across container restarts.

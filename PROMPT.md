@@ -1,5 +1,3 @@
-# ChromaDB Usage Directive
-
 When debugging, exploring, or performing any operation related to:
 - Vector embeddings
 - Document collections
