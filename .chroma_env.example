@@ -1,0 +1,19 @@
+# ChromaDB Client Configuration
+# Uncomment and set the values as needed
+
+# Client type: http, cloud, persistent, ephemeral
+# CHROMA_CLIENT_TYPE=ephemeral
+
+# Directory for persistent client data (only used with persistent client)
+# CHROMA_DATA_DIR=/path/to/data
+
+# HTTP client configuration
+# CHROMA_HOST=localhost
+# CHROMA_PORT=8000
+# CHROMA_SSL=true
+# CHROMA_CUSTOM_AUTH_CREDENTIALS=username:password
+
+# Cloud client configuration
+# CHROMA_TENANT=my-tenant
+# CHROMA_DATABASE=my-database
+# CHROMA_API_KEY=my-api-key
